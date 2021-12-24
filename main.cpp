@@ -146,12 +146,14 @@ public:
             if (bad_balance){
                 //1 добавление в левое поддерево левого сына опорного узла
                 if ((precore == core->left) and inTree(precore->left, cur)){
+                    cout << "case 1\n";
                     if (core == root){
                         root = precore;
                         precore->parent = nullptr;
                         core->left = precore->right;
+                        if (precore->right != nullptr)
+                            precore->right->parent = core;
                         precore->right = core;
-                        precore->right->parent = core;
                         core->parent = precore;
                     }
                     else{
@@ -175,12 +177,14 @@ public:
                 }
                 //2 добавление в правое поддерево правого сына опорного узла
                 if ((precore == core->right) and (inTree(precore->right, cur))){
+                    cout << "case 2\n";
                     if (core == root){
                         root = precore;
                         precore->parent = nullptr;
                         core->right = precore->left;
+                        if (precore->left != nullptr)
+                            precore->left->parent = core;
                         precore->left = core;
-                        precore->left->parent = core;
                         core->parent = precore;
 
                     }
@@ -287,6 +291,445 @@ public:
         }
     }
 
+    void remove(int value){
+
+        using namespace std;
+
+        AVLNode* cur = root;
+
+        bool found = false;
+
+        while (cur != nullptr){
+            if (value < cur->key){
+                cur = cur->left;
+            }
+            else if (value > cur->key){
+                cur = cur->right;
+            }
+            else{
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) return;
+        
+        //нет детей
+        if ((cur->left == nullptr) and (cur->right == nullptr)){
+            if (cur->parent == nullptr){
+                delete[] cur;
+                root = nullptr;
+            }
+            else{
+                if (cur->parent->left == cur){
+                    cur->parent->left = nullptr;
+                }
+                else{
+                    cur->parent->right = nullptr;
+                }
+                AVLNode* current = cur->parent;
+                delete[] cur;                
+
+                while (current != nullptr){
+                    cout << "Current->key: " << current->key << endl;
+                    int leftDepth = getDepth(current->left);
+                    int rightDepth = getDepth(current->right);
+                    current->balance = rightDepth - leftDepth;
+                    if (abs(current->balance) > 1){
+                        cout << "current->key = " << current->key << endl;
+                        if (leftDepth == rightDepth - 2){
+                            cout << "case 1!\n";
+                            AVLNode* A = current;
+                            AVLNode* B = current->right;
+                            if (getDepth(B->right) >= getDepth(B->left)){
+                                cout << "case 1a!\n";
+                                if (A == root){
+                                    root = B;
+                                    B->parent = nullptr;
+                                    A->right = B->left;
+                                    if (B->left != nullptr)
+                                        B->left->parent = A;
+                                    B->left = A;
+                                    A->parent = B;
+
+                                }
+                                else{
+                                    if (A == A->parent->left){
+                                        A->parent->left = B;
+                                    }
+                                    else{
+                                        A->parent->right = B;
+                                    }
+
+                                    if (B->left != nullptr)
+                                        B->left->parent = A;
+
+                                    B->parent = A->parent;
+                                    A->parent = B;
+
+                                    
+                                    A->right = B->left;
+                                    B->left = A;
+                                }                            
+                            }
+                            else{
+                                cout << "case 1b!";
+                                AVLNode* C = current->right;
+                                B = C->left;
+
+                                if (getDepth(C->right) < getDepth(B)){
+                                    
+                                    
+
+                                    if (A == root){
+                                        root = B;
+                                        B->parent = nullptr;
+                                    }
+                                    else{
+                                        if (A->parent->left == A){
+                                            A->parent->left = B;
+                                            B->parent = A->parent;
+                                        }
+                                        else{
+                                            A->parent->right = B;
+                                            B->parent = A->parent;
+                                        }
+                                    }
+
+
+                                    if (B->left != nullptr)
+                                        B->left->parent = A;
+                                    A->right = B->left;
+                                    
+                                    B->left = A;
+                                    A->parent = B;
+
+                                    if (B->right != nullptr)
+                                        B->right->parent = C;
+                                    C->left = B->right;
+
+                                    B->right = C;
+                                    C->parent = B;
+
+                
+                                }
+
+                            }
+                            
+                        }
+                        else if (leftDepth == rightDepth + 2){
+                            
+
+                            AVLNode* B = current;
+                            AVLNode* A = B->left;
+
+                            if (getDepth(A->left) >= getDepth(A->right)){
+
+                                if (B == root){
+                                    root = A;
+                                    A->parent = nullptr;
+                                    B->left = A->right;
+                                    if (A->right != nullptr)
+                                        A->right->parent = B;
+                                    A->right = B;
+                                    B->parent = A;
+                                }
+                                else{
+                                    if (B == B->parent->left){
+                                        B->parent->left = A;
+                                    }
+                                    else{
+                                        B->parent->right = A;
+                                    }
+
+                                    if (A->right != nullptr)
+                                        A->right->parent = B;
+
+                                    A->parent = B->parent;
+                                    B->parent = A;
+
+                                
+                                    B->left = A->right;
+                                    A->right = B;
+                                }
+                            }
+                            else{
+                                AVLNode* C = current;
+                                A = C->left;
+                                B = A->right;
+
+                                if (C == root){
+                                    root = B;
+                                    B->parent = nullptr;
+                                }
+                                else{
+                                    if (C->parent->left == C){
+                                        C->parent->left = B;
+                                        B->parent = C->parent;
+                                    }
+                                    else{
+                                        C->parent->right = B;
+                                        B->parent = C->parent;
+                                    }
+                                }
+
+                                if (B->left != nullptr)
+                                    B->left->parent = A;
+                                A->right = B->left;
+                                
+                                B->left = A;
+                                A->parent = B;
+
+                                if (B->right != nullptr)
+                                    B->right->parent = C;
+                                C->left = B->right;
+
+                                B->right = C;
+                                C->parent = B;
+                            }
+                        }
+                    }
+                    current = current->parent;
+                }
+            }
+        }
+        else{
+            if ((cur->left != nullptr) ^ (cur->right != nullptr)){
+                if (cur->left != nullptr){
+                    if (cur == root){
+                        root = cur->left;
+                        root->parent = nullptr;
+                    }
+                    else{
+                        if (cur == cur->parent->left){
+                            cur->parent->left = cur->left;
+                        }
+                        else{
+                            cur->parent->right = cur->left;
+                        }
+
+                        delete[] cur;
+
+                    }
+                }
+                if (cur->right != nullptr){
+                    if (cur == root){
+                        root = cur->right;
+                        root->parent = nullptr;
+                    }
+                    else{
+                        if (cur == cur->parent->left){
+                            cur->parent->left = cur->right;
+                            delete[] cur;
+                        }
+                        else{
+                            cur->parent->right = cur->right;
+                            delete[] cur;
+                        }
+                    }
+                }
+            }
+            else{
+                if ((cur->left != nullptr) and (cur->right != nullptr)){
+                    //ищем самый левый узел в правом поддереве
+
+                    cout << "двое детей!\n";
+                    this_thread::sleep_for(chrono::milliseconds(100));
+
+                    AVLNode* current = cur->right;
+                    while (current->left != nullptr){
+                        current = current->left;
+                    }
+
+                    std::swap(cur->key, current->key);
+                    cur = current;
+                    if ((cur->left == nullptr) and (cur->right == nullptr)){
+                        if (cur->parent == nullptr){
+                            delete[] cur;
+                            root = nullptr;
+                        }
+                        else{
+                            if (cur->parent->left == cur){
+                                cur->parent->left = nullptr;
+                            }
+                            else{
+                                cur->parent->right = nullptr;
+                            }
+                            AVLNode* current = cur->parent;
+                            delete[] cur;                
+
+                            while (current != nullptr){
+                                cout << "Current->key: " << current->key << endl;
+                                int leftDepth = getDepth(current->left);
+                                int rightDepth = getDepth(current->right);
+                                current->balance = rightDepth - leftDepth;
+                                if (abs(current->balance) > 1){
+                                    cout << "current->key = " << current->key << endl;
+                                    if (leftDepth == rightDepth - 2){
+                                        cout << "case 1!\n";
+                                        AVLNode* A = current;
+                                        AVLNode* B = current->right;
+                                        if (getDepth(B->right) >= getDepth(B->left)){
+                                            cout << "case 1a!\n";
+                                            if (A == root){
+                                                root = B;
+                                                B->parent = nullptr;
+                                                A->right = B->left;
+                                                if (B->left != nullptr)
+                                                    B->left->parent = A;
+                                                B->left = A;
+                                                A->parent = B;
+
+                                            }
+                                            else{
+                                                if (A == A->parent->left){
+                                                    A->parent->left = B;
+                                                }
+                                                else{
+                                                    A->parent->right = B;
+                                                }
+
+                                                if (B->left != nullptr)
+                                                    B->left->parent = A;
+
+                                                B->parent = A->parent;
+                                                A->parent = B;
+
+                                                
+                                                A->right = B->left;
+                                                B->left = A;
+                                            }                            
+                                        }
+                                        else{
+                                            cout << "case 1b!";
+                                            AVLNode* C = current->right;
+                                            B = C->left;
+
+                                            if (getDepth(C->right) < getDepth(B)){
+                                                
+                                                
+
+                                                if (A == root){
+                                                    root = B;
+                                                    B->parent = nullptr;
+                                                }
+                                                else{
+                                                    if (A->parent->left == A){
+                                                        A->parent->left = B;
+                                                        B->parent = A->parent;
+                                                    }
+                                                    else{
+                                                        A->parent->right = B;
+                                                        B->parent = A->parent;
+                                                    }
+                                                }
+
+
+                                                if (B->left != nullptr)
+                                                    B->left->parent = A;
+                                                A->right = B->left;
+                                                
+                                                B->left = A;
+                                                A->parent = B;
+
+                                                if (B->right != nullptr)
+                                                    B->right->parent = C;
+                                                C->left = B->right;
+
+                                                B->right = C;
+                                                C->parent = B;
+
+                            
+                                            }
+
+                                        }
+                                        
+                                    }
+                                    else if (leftDepth == rightDepth + 2){
+                                        
+
+                                        AVLNode* B = current;
+                                        AVLNode* A = B->left;
+
+                                        if (getDepth(A->left) >= getDepth(A->right)){
+
+                                            if (B == root){
+                                                root = A;
+                                                A->parent = nullptr;
+                                                B->left = A->right;
+                                                if (A->right != nullptr)
+                                                    A->right->parent = B;
+                                                A->right = B;
+                                                B->parent = A;
+                                            }
+                                            else{
+                                                if (B == B->parent->left){
+                                                    B->parent->left = A;
+                                                }
+                                                else{
+                                                    B->parent->right = A;
+                                                }
+
+                                                if (A->right != nullptr)
+                                                    A->right->parent = B;
+
+                                                A->parent = B->parent;
+                                                B->parent = A;
+
+                                            
+                                                B->left = A->right;
+                                                A->right = B;
+                                            }
+                                        }
+                                        else{
+                                            AVLNode* C = current;
+                                            A = C->left;
+                                            B = A->right;
+
+                                            if (C == root){
+                                                root = B;
+                                                B->parent = nullptr;
+                                            }
+                                            else{
+                                                if (C->parent->left == C){
+                                                    C->parent->left = B;
+                                                    B->parent = C->parent;
+                                                }
+                                                else{
+                                                    C->parent->right = B;
+                                                    B->parent = C->parent;
+                                                }
+                                            }
+
+                                            if (B->left != nullptr)
+                                                B->left->parent = A;
+                                            A->right = B->left;
+                                            
+                                            B->left = A;
+                                            A->parent = B;
+
+                                            if (B->right != nullptr)
+                                                B->right->parent = C;
+                                            C->left = B->right;
+
+                                            B->right = C;
+                                            C->parent = B;
+                                        }
+                                    }
+                                }
+                                current = current->parent;
+                            }
+                        }
+                    }
+
+                }
+
+            }
+        }
+
+    }
+
+
     void print(){
         using std::vector;
         vector<std::pair<AVLNode*, int>> queue;
@@ -330,33 +773,29 @@ int main(){
 
     AVLTree tree;
 
-    const int tree_size = int(pow(2, 12));
+    const int tree_size = 7;
 
     int* values = new int[tree_size];
 
 
-    for (int i = 1; i < tree_size; i++){
-        if (i % 2 == 0) values[i] = i * 2;
-        else values[i] = i * 2 - 1;
+    for (int i = 0; i < tree_size; i++){
+        values[i] = i;
     }
 
-    cout << "numbers generated!\n";
+    // cout << "numbers generated!\n";
 
-    cout << "enter some character: ";
-    int x;
-    cin >> x;
+    // cout << "enter some character: ";
+    // int x;
+    // cin >> x;
 
     for (int i = 0; i < tree_size; i++){
-        cout << "Inserting #" << i + 1 << " value\n";
+        cout << "insert " << values[i] << endl;
         tree.insert(values[i]);
     }
 
-    cout << endl;   
-    tree.print();
-    cout << endl;
+    tree.remove(1);
 
-
-
+    cout << endl; tree.print(); cout << endl;
 
 
     return 0;
